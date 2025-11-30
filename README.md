@@ -9,7 +9,7 @@ Heypixel inject base
 - **ASM 注入框架** —— 原作者：Loratadine (Cherish)；修改：[玖弦](https://github.com/jiuxianqwq)、[手淫](https://github.com/ishowbypass/)
 - **Loader & redefine (NativeUtils)** —— 参考自 [Minecraft-Injectable-Client-Base](https://github.com/ishowbypass/Minecraft-Injectable-Client-Base) —— 作者：[手淫](https://github.com/ishowbypass/)
 
-## 📢 社区交流 / Community
+## 社区交流 / Community
 
 欢迎加入我们的 QQ 群一起讨论和交流：
 
