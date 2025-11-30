@@ -1,6 +1,5 @@
 package com.catclient.duke.utils.mapping;
 
-import com.catclient.duke.Duke;
 import com.catclient.duke.utils.wrapper.Wrapper;
 import org.objectweb.asm.Type;
 
@@ -18,7 +17,7 @@ public class MappingUtils implements Wrapper {
 
     static {
         try {
-            mappingFile = IMappingFile.load(new File(mappingFolder.getAbsolutePath() + "mappings.tsrg"));
+            mappingFile = IMappingFile.load(new File(mappingFolder.getAbsolutePath() + "\\mappings.tsrg"));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -33,7 +32,7 @@ public class MappingUtils implements Wrapper {
         }
     }
 
-    public static String get(Class<?> clazz, String notObfuscatedName, String docs) {
+    public static String get(Class<?> clazz, String notObfuscatedName, String desc) {
         if (isNotObfuscated()) return notObfuscatedName;
 
         if (clazz == null || notObfuscatedName == null) {
@@ -50,8 +49,8 @@ public class MappingUtils implements Wrapper {
         }
 
         // 分拆方法/字段逻辑，减少嵌套
-        if (docs != null) {
-            IMappingFile.IMethod method = mappingClass.getMethod(notObfuscatedName, docs);
+        if (desc != null) {
+            IMappingFile.IMethod method = mappingClass.getMethod(notObfuscatedName, desc);
             return (method != null && method.getMapped() != null) ? method.getMapped() : notObfuscatedName;
         } else {
             IMappingFile.IField field = mappingClass.getField(notObfuscatedName);

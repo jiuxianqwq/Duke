@@ -1,5 +1,6 @@
 package com.catclient.duke.asm.api;
 
+import com.catclient.duke.utils.wrapper.Wrapper;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -16,7 +17,7 @@ import java.lang.annotation.RetentionPolicy;
 @Getter
 @AllArgsConstructor
 @SuppressWarnings("unused")
-public class ASMTransformer {
+public class ASMTransformer implements Wrapper {
     private Class<?> target;
 
     @Retention(RetentionPolicy.RUNTIME)

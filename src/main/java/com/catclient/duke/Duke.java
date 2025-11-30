@@ -1,6 +1,9 @@
 package com.catclient.duke;
 
+import com.catclient.duke.asm.api.TransformerManager;
 import com.catclient.duke.event.EventManager;
+import com.catclient.duke.module.ModuleManager;
+import com.catclient.duke.utils.client.LibraryUtils;
 import com.catclient.duke.utils.client.SoundUtils;
 import lombok.Getter;
 import net.minecraft.client.Minecraft;
@@ -21,25 +24,33 @@ public class Duke {
     @Getter
     private static boolean canPlaySound = false;
     private EventManager eventManager;
+    private ModuleManager moduleManager;
 
     public Duke() {
         try {
             instance = this;
             init(Class.forName("net.minecraft.client.Minecraft"));
             canPlaySound = true;
-            SoundUtils.playSound(CLIENT_FOLDER.getAbsolutePath() + "resources\\sounds\\opening.wav", 0.5f);
+            SoundUtils.playSound(CLIENT_FOLDER.getAbsolutePath() + "\\resources\\sounds\\opening.wav", 1f);
         } catch (Exception e) {
-            System.out.println("[Duke] Failed to load Duke: \n" + e.getMessage());
+            System.out.println("[Duke] Failed to load Duke");
+            e.printStackTrace();
         }
     }
 
     public static File b(String s) {
+        System.out.println("[Duke] init client");
+        System.setProperty("java.awt.headless", "false");
         new Duke();
         return null;
     }
 
     public Minecraft init(Class<?> clazz) throws Exception {
+        LibraryUtils.loadNatives();
         eventManager = new EventManager();
+        moduleManager = new ModuleManager();
+
+        TransformerManager.init();
         return null;
     }
 

@@ -1,5 +1,6 @@
 package com.catclient.duke.module;
 
+import com.catclient.duke.Duke;
 import com.catclient.duke.utils.client.SoundUtils;
 import com.catclient.duke.utils.wrapper.Wrapper;
 import com.catclient.duke.value.Value;
@@ -42,12 +43,15 @@ public class Module implements Wrapper {
     }
 
     public void setEnabled(boolean enabled) {
+        if (this.enabled == enabled) return;
         this.enabled = enabled;
         if (enabled) {
-            SoundUtils.playSound(soundFolder.getAbsolutePath() + "enable.wav", 0.5f);
+            SoundUtils.playSound(soundFolder.getAbsolutePath() + "\\enable.wav", 1f);
+            Duke.getInstance().getEventManager().register(this);
             onEnable();
         } else {
-            SoundUtils.playSound(soundFolder.getAbsolutePath() + "disable.wav", 0.5f);
+            Duke.getInstance().getEventManager().unregister(this);
+            SoundUtils.playSound(soundFolder.getAbsolutePath() + "\\disable.wav", 1f);
             onDisable();
         }
     }

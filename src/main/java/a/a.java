@@ -17,7 +17,7 @@ public class a {
         Duke.b("8964");
     }
 
-    public static byte[] getClassesBytes(Class<?> clazz) {
+    public static byte[] b(Class<?> clazz) {
         try {
             return cachedClassBytes.get(clazz);
         } catch (Exception exception) {
@@ -43,5 +43,5 @@ public class a {
 
     public static native void a(Class cls);
 
-    public static native void a(Class<?> targetClass, byte[] newClassBytes);
+    public static native void b(Class<?> targetClass, byte[] newClassBytes);
 }

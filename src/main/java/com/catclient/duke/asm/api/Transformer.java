@@ -52,7 +52,7 @@ public class Transformer {
                 ClassNode node = null;
                 while (node == null) {
                     try {
-                        bytes = a.getClassesBytes(transformer.getTarget());
+                        bytes = a.b(transformer.getTarget());
                         node = ASMUtils.node(bytes);
                     } catch (Throwable ignored) {
                     }

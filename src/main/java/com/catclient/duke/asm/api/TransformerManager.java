@@ -1,5 +1,7 @@
 package com.catclient.duke.asm.api;
 
+import a.ASMTransformers.KeyboardHandlerTransformer;
+import a.ASMTransformers.LocalPlayerTransformer;
 import a.a;
 import com.catclient.duke.Duke;
 import org.objectweb.asm.Opcodes;
@@ -33,14 +35,9 @@ public class TransformerManager {
         try {
 //            在这里注册你的变形金刚
 //            transformer.addTransformer(new MinecraftTransformer());
+            transformer.addTransformer(new KeyboardHandlerTransformer());
+            transformer.addTransformer(new LocalPlayerTransformer());
 
-            try {
-                System.load(Duke.CLIENT_FOLDER.getAbsolutePath() + "\\NativeUtils.dll");
-            } catch (Exception e) {
-                JOptionPane.showMessageDialog(null, "加载NativeUtils失败: \n" + e.getMessage(), "注入失败", JOptionPane.ERROR_MESSAGE);
-                e.printStackTrace();
-                System.exit(0);
-            }
             for (ASMTransformer asmTransformer : TransformerManager.transformer.transformers) {
                 a.a(asmTransformer.getTarget());
             }
@@ -51,7 +48,7 @@ public class TransformerManager {
 
             for (Map.Entry<String, byte[]> entry : classBytesMap.entrySet()) {
                 try {
-                    a.a(Class.forName(entry.getKey()), entry.getValue());
+                    a.b(Class.forName(entry.getKey()), entry.getValue());
                     if (debugging)
                         Files.write(new File(Duke.CLIENT_FOLDER, entry.getKey() + ".class").toPath(), entry.getValue());
                 } catch (Throwable ex) {
@@ -63,7 +60,7 @@ public class TransformerManager {
 
         } catch (Throwable ex) {
             System.out.println("Inject failed.");
-            ex.printStackTrace();
+            throw ex;
         }
     }
 
