@@ -3,6 +3,7 @@ package com.catclient.duke.module;
 import com.catclient.duke.Duke;
 import com.catclient.duke.event.api.annotations.EventTarget;
 import com.catclient.duke.event.impl.KeyboardEvent;
+import com.catclient.duke.module.impl.movement.Freeze;
 import com.catclient.duke.module.impl.movement.Sprint;
 import com.catclient.duke.utils.wrapper.Wrapper;
 import org.lwjgl.glfw.GLFW;
@@ -26,7 +27,7 @@ public class ModuleManager implements Wrapper {
     public void init() {
         Duke.getInstance().getEventManager().register(this);
         addModule(
-            new Sprint()
+            new Sprint(), new Freeze()
         );
     }
 
