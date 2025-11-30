@@ -1,4 +1,4 @@
-package com.catclient.duke.utils.asm;
+package com.catclient.duke.asm.api;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

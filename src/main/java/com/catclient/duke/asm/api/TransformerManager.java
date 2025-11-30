@@ -2,7 +2,6 @@ package com.catclient.duke.asm.api;
 
 import a.a;
 import com.catclient.duke.Duke;
-import com.catclient.duke.utils.asm.ASMTransformer;
 import org.objectweb.asm.Opcodes;
 
 import javax.swing.*;
@@ -36,7 +35,7 @@ public class TransformerManager {
 //            transformer.addTransformer(new MinecraftTransformer());
 
             try {
-                System.load(Duke.CLIENT_FOLDER.getAbsolutePath() + "\\libNativeUtils.dll");
+                System.load(Duke.CLIENT_FOLDER.getAbsolutePath() + "\\NativeUtils.dll");
             } catch (Exception e) {
                 JOptionPane.showMessageDialog(null, "加载NativeUtils失败: \n" + e.getMessage(), "注入失败", JOptionPane.ERROR_MESSAGE);
                 e.printStackTrace();
@@ -63,7 +62,7 @@ public class TransformerManager {
 
 
         } catch (Throwable ex) {
-            System.out.println("Mixin inject failed.");
+            System.out.println("Inject failed.");
             ex.printStackTrace();
         }
     }

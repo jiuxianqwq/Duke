@@ -1,0 +1,560 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ASM 注入框架使用文档 · MD3</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <script type="importmap">
+    {
+      "imports": {
+        "@material/web/": "https://esm.run/@material/web/"
+      }
+    }
+  </script>
+  <script type="module">
+    import '@material/web/all.js';
+    import {styles as typescaleStyles} from '@material/web/typography/md-typescale-styles.js';
+    document.adoptedStyleSheets.push(typescaleStyles.styleSheet);
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-core.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+  <script>
+    window.Prism = window.Prism || {}; Prism.manual = true;
+  </script>
+  <style>
+    :root {
+      --md-sys-color-primary: #4f8ef7;
+      --md-sys-color-on-primary: #ffffff;
+      --md-sys-color-secondary: #5c6bc0;
+      --md-sys-color-surface: #ffffff;
+      --md-sys-color-on-surface: #1f1f1f;
+      --md-sys-color-outline: rgba(0,0,0,0.12);
+    }
+    :root.dark {
+      --md-sys-color-primary: #a8caff;
+      --md-sys-color-on-primary: #00306c;
+      --md-sys-color-secondary: #bfc7ff;
+      --md-sys-color-surface: #121212;
+      --md-sys-color-on-surface: #e6e6e6;
+      --md-sys-color-outline: rgba(255,255,255,0.16);
+    }
+    body {
+      margin: 0;
+      font-family: Roboto, system-ui, Arial, sans-serif;
+      background: var(--md-sys-color-surface);
+      color: var(--md-sys-color-on-surface);
+    }
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--md-sys-color-outline);
+    }
+    .container {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .tabs {
+      position: sticky;
+      top: 0;
+      background: var(--md-sys-color-surface);
+      z-index: 10;
+      border-bottom: 1px solid var(--md-sys-color-outline);
+    }
+    section {
+      display: none;
+      padding: 16px 0 32px;
+    }
+    section.active {
+      display: block;
+    }
+    .card {
+      position: relative;
+      border: 1px solid var(--md-sys-color-outline);
+      border-radius: 16px;
+      padding: 16px;
+      background: var(--md-sys-color-surface);
+      box-shadow:
+        0 1px 2px rgba(0,0,0,0.06),
+        0 3px 6px rgba(0,0,0,0.05),
+        0 6px 12px rgba(0,0,0,0.04);
+      margin-bottom: 16px;
+      transition: box-shadow .2s ease, transform .2s ease, border-color .2s ease;
+      overflow: hidden;
+    }
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 16px;
+      pointer-events: none;
+      background: linear-gradient(
+        180deg,
+        color-mix(in oklab, var(--md-sys-color-surface) 98%, var(--md-sys-color-primary)),
+        transparent 30%
+      );
+      opacity: .25;
+    }
+    .card:hover {
+      transform: translateY(-1px);
+      border-color: color-mix(in oklab, var(--md-sys-color-outline) 70%, var(--md-sys-color-primary));
+      box-shadow:
+        0 2px 4px rgba(0,0,0,0.08),
+        0 6px 12px rgba(0,0,0,0.06),
+        0 12px 24px rgba(0,0,0,0.05);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    .mono {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 13px;
+      background: color-mix(in oklab, var(--md-sys-color-surface) 90%, var(--md-sys-color-on-surface));
+      padding: 12px;
+      border-radius: 12px;
+      overflow-x: auto;
+      border: 1px dashed var(--md-sys-color-outline);
+      display: block;
+      width: 100%;
+      margin: 12px 0;
+      box-sizing: border-box;
+      max-width: 100%;
+    }
+    .mono code { display: block; box-sizing: border-box; max-width: 100%; }
+    .code-card { grid-column: 1 / -1; }
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid var(--md-sys-color-outline);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .table th, .table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--md-sys-color-outline);
+      text-align: left;
+    }
+    .table th {
+      background: color-mix(in oklab, var(--md-sys-color-surface) 85%, var(--md-sys-color-primary));
+    }
+    .section-actions {
+      display: flex;
+      gap: 8px;
+      margin: 8px 0 16px;
+      align-items: center;
+    }
+  </style>
+  <script>
+    addEventListener('DOMContentLoaded', () => {
+      const tabs = document.querySelector('md-tabs');
+      const sections = [...document.querySelectorAll('section')];
+      const switchTheme = document.querySelector('#themeSwitch');
+
+      const show = (id) => {
+        sections.forEach(s => s.classList.toggle('active', s.id === id));
+        history.replaceState(null, '', `#${id}`);
+      };
+
+      tabs?.addEventListener('change', () => {
+        const selected = tabs.activeTab?.getAttribute('data-target');
+        if (selected) show(selected);
+      });
+
+      const initial = location.hash?.slice(1) || 'overview';
+      show(initial);
+
+      switchTheme?.addEventListener('change', () => {
+        document.documentElement.classList.toggle('dark', switchTheme.selected);
+      });
+
+      if (window.Prism) {
+        Prism.highlightAll();
+      }
+    });
+  </script>
+  <style>
+    .md-typescale-display-medium { margin: 0; }
+    .subtitle { opacity: .7; }
+  </style>
+</head>
+<body>
+  <header class="container">
+    <div>
+      <h1 class="md-typescale-display-medium">ASM 注入框架使用文档</h1>
+    </div>
+  </header>
+
+  <div class="tabs">
+    <div class="container">
+      <md-tabs>
+        <md-primary-tab data-target="overview">框架概述</md-primary-tab>
+        <md-primary-tab data-target="guide">变换器开发指南</md-primary-tab>
+        <md-primary-tab data-target="usage">框架使用教程</md-primary-tab>
+        <md-primary-tab data-target="advanced">高级主题</md-primary-tab>
+        <md-primary-tab data-target="api">API 参考与案例</md-primary-tab>
+      </md-tabs>
+    </div>
+  </div>
+
+  <main class="container">
+    <section id="overview" class="active">
+      <div class="card">
+        <h2 class="md-typescale-headline-medium">核心功能与原理</h2>
+        <ul class="md-typescale-body-medium">
+          <li>运行时重定义：通过 `a.a` 热替换类字节码。</li>
+          <li>注解驱动：使用 `@Inject(method, desc)` 声明目标方法与描述符。</li>
+          <li>ASM Tree API：以 `ClassNode`/`MethodNode` 操作字节码对象树。</li>
+          <li>动态混淆映射：`MappingUtils.get(...)` 适配版本与混淆名。</li>
+        </ul>
+        <div class="section-actions">
+          <md-filled-button onclick="location.hash='guide'">开始开发</md-filled-button>
+          <md-outlined-button onclick="location.hash='usage'">集成框架</md-outlined-button>
+        </div>
+      </div>
+      <div class="grid">
+        <div class="card">
+          <h3 class="md-typescale-title-medium">典型场景</h3>
+          <ul class="md-typescale-body-medium">
+            <li>事件钩子：渲染、移动、网络包等生命周期回调。</li>
+            <li>逻辑增强：HUD、相机、动画、输入行为替换。</li>
+            <li>调试分析：注入日志、统计性能、拦截流量。</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3 class="md-typescale-title-medium">限制条件</h3>
+          <ul class="md-typescale-body-medium">
+            <li>需保证栈平衡与局部变量索引正确。</li>
+            <li>跨版本需正确维护混淆映射。</li>
+            <li>高频路径应将复杂逻辑移出 ASM 指令至静态方法。</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="guide">
+      <div class="card">
+        <h2 class="md-typescale-headline-medium">变换器模板</h2>
+        <pre class="mono"><code class="language-java">// 通用模板
+public class ExampleTransformer extends ASMTransformer {
+  public ExampleTransformer() { super(TargetClass.class); }
+  @Inject(method = "targetMethod", desc = "(I)V")
+  public void inject(MethodNode method) {
+    // 在此操作 method.instructions
+  }
+}</code></pre>
+      </div>
+      <div class="card">
+        <h3 class="md-typescale-title-medium">常见注入模式</h3>
+        <ul class="md-typescale-body-medium">
+          <li>方法头部注入：在方法开头插入逻辑，触发事件与埋点。</li>
+          <li>返回注入：条件满足时直接 `RETURN`，阻断原逻辑。</li>
+          <li>指令搜索：定位 `GETFIELD`/`INVOKEVIRTUAL` 并在附近插入。</li>
+          <li>方法重写：`instructions.clear()` 重写整段方法体。</li>
+          <li>变量/参数修改：替换 `VarInsnNode` 加载为事件结果字段。</li>
+        </ul>
+        <div class="grid">
+          <div class="card code-card">
+            <h4 class="md-typescale-title-small">方法头部注入（基于传送包处理）</h4>
+            <pre class="mono"><code class="language-java">@Inject(method = "handleMovePlayer", desc = "(Lnet/minecraft/network/protocol/game/ClientboundPlayerPositionPacket;)V")
+public void headInject(MethodNode method) {
+  InsnList list = new InsnList();
+  // 加载参数1：ClientboundPlayerPositionPacket
+  list.add(new VarInsnNode(Opcodes.ALOAD, 1));
+  // 调用静态埋点：ExampleHooks.onTeleport
+  list.add(new MethodInsnNode(Opcodes.INVOKESTATIC,
+      Type.getInternalName(ExampleHooks.class),
+      "onTeleport",
+      "(Lnet/minecraft/network/protocol/game/ClientboundPlayerPositionPacket;)V",
+      false));
+  // 插入到方法起始处
+  method.instructions.insert(list);
+}
+
+// 示例 Hook（生产环境可放在任意工具类中）
+public final class ExampleHooks {
+  public static void onTeleport(Object packet) {
+    // 触发事件总线或埋点日志
+  }
+}</code></pre>
+          </div>
+
+          <div class="card code-card">
+            <h4 class="md-typescale-title-small">返回注入（基于发包拦截）</h4>
+            <pre class="mono"><code class="language-java">@Inject(method = "sendPacket", desc = "(Lnet/minecraft/network/protocol/Packet;Lnet/minecraft/network/PacketSendListener;)V")
+private void cancellableReturn(MethodNode method) {
+  InsnList ins = new InsnList();
+  LabelNode continueLabel = new LabelNode();
+  // ALOAD 1: Packet
+  ins.add(new VarInsnNode(Opcodes.ALOAD, 1));
+  // 调用静态检查：ExampleHooks.shouldCancelSend(packet)
+  ins.add(new MethodInsnNode(Opcodes.INVOKESTATIC,
+      Type.getInternalName(ExampleHooks.class),
+      "shouldCancelSend",
+      "(Lnet/minecraft/network/protocol/Packet;)Z",
+      false));
+  // 如果 false 跳转继续
+  ins.add(new JumpInsnNode(Opcodes.IFEQ, continueLabel));
+  // 直接返回阻断原逻辑
+  ins.add(new InsnNode(Opcodes.RETURN));
+  ins.add(continueLabel);
+  method.instructions.insert(ins);
+}
+
+public final class ExampleHooks {
+  public static boolean shouldCancelSend(Object packet) {
+    // 条件命中则返回 true 表示取消
+    return false;
+  }
+}</code></pre>
+          </div>
+
+          <div class="card code-card">
+            <h4 class="md-typescale-title-small">指令搜索插入（基于 tickCount 跳过处理）</h4>
+            <pre class="mono"><code class="language-java">@Inject(method = "tickNonPassenger", desc = "(Lnet/minecraft/world/entity/Entity;)V")
+public void searchInsert(MethodNode method) {
+  InsnList inject = new InsnList();
+  LabelNode cont = new LabelNode();
+  for (AbstractInsnNode node : method.instructions.toArray()) {
+    if (node.getOpcode() == Opcodes.GETFIELD) {
+      FieldInsnNode f = (FieldInsnNode) node;
+      if ("tickCount".equals(f.name) && "I".equals(f.desc)) {
+        inject.add(new VarInsnNode(Opcodes.ALOAD, 1));
+        inject.add(new MethodInsnNode(Opcodes.INVOKESTATIC,
+            Type.getInternalName(ExampleHooks.class),
+            "skipTicks", "(Lnet/minecraft/world/entity/Entity;)Z", false));
+        inject.add(new JumpInsnNode(Opcodes.IFEQ, cont));
+        inject.add(new InsnNode(Opcodes.RETURN));
+        inject.add(cont);
+        method.instructions.insert(node, inject);
+        break;
+      }
+    }
+  }
+}
+
+public final class ExampleHooks {
+  public static boolean skipTicks(Object entity) { return false; }
+}</code></pre>
+          </div>
+
+          <div class="card code-card">
+            <h4 class="md-typescale-title-small">方法重写（基于视角向量计算）</h4>
+            <pre class="mono"><code class="language-java">@Inject(method = "getViewVector", desc = "(F)Lnet/minecraft/world/phys/Vec3;")
+public void overwrite(MethodNode method) {
+  InsnList ins = new InsnList();
+  // 构造：调用原类方法获取 yaw/pitch，再经 Hook 修改后计算返回向量
+  ins.add(new VarInsnNode(Opcodes.ALOAD, 0));
+  ins.add(new VarInsnNode(Opcodes.FLOAD, 1));
+  // 假定 getViewYRot/getViewXRot 映射
+  ins.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, "net/minecraft/world/entity/Entity",
+      "getViewYRot", "(F)F"));
+  ins.add(new VarInsnNode(Opcodes.ALOAD, 0));
+  ins.add(new VarInsnNode(Opcodes.FLOAD, 1));
+  ins.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, "net/minecraft/world/entity/Entity",
+      "getViewXRot", "(F)F"));
+  ins.add(new MethodInsnNode(Opcodes.INVOKESTATIC, Type.getInternalName(ExampleHooks.class),
+      "onLook", "(Lnet/minecraft/world/entity/Entity;FF)Lexample/LookEvent;", false));
+  ins.add(new VarInsnNode(Opcodes.ASTORE, 2));
+  // 使用事件里的 yaw/pitch 计算向量并返回
+  ins.add(new VarInsnNode(Opcodes.ALOAD, 0));
+  ins.add(new VarInsnNode(Opcodes.ALOAD, 2));
+  ins.add(new FieldInsnNode(Opcodes.GETFIELD, "example/LookEvent", "rotationPitch", "F"));
+  ins.add(new VarInsnNode(Opcodes.ALOAD, 2));
+  ins.add(new FieldInsnNode(Opcodes.GETFIELD, "example/LookEvent", "rotationYaw", "F"));
+  ins.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, "net/minecraft/world/entity/Entity",
+      "calculateViewVector", "(FF)Lnet/minecraft/world/phys/Vec3;"));
+  ins.add(new InsnNode(Opcodes.ARETURN));
+  method.instructions.clear();
+  method.instructions.insert(ins);
+}
+
+public final class ExampleHooks {
+  public static class LookEvent { public float rotationYaw, rotationPitch; }
+  public static LookEvent onLook(Object entity, float yaw, float pitch) {
+    LookEvent e = new LookEvent(); e.rotationYaw = yaw; e.rotationPitch = pitch; return e;
+  }
+}</code></pre>
+          </div>
+
+          <div class="card code-card">
+            <h4 class="md-typescale-title-small">变量/参数修改（基于使用物品事件）</h4>
+            <pre class="mono"><code class="language-java">@Inject(method = "useItem", desc = "(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/InteractionHand;)Lnet/minecraft/world/InteractionResult;")
+public void varParamModify(MethodNode method) {
+  InsnList ins = new InsnList();
+  // 读取调用者的 yaw/pitch 并通过 Hook 生成事件
+  ins.add(new VarInsnNode(Opcodes.ALOAD, 1));
+  ins.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, "net/minecraft/world/entity/Entity",
+      "getYRot", "()F"));
+  ins.add(new VarInsnNode(Opcodes.ALOAD, 1));
+  ins.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, "net/minecraft/world/entity/Entity",
+      "getXRot", "()F"));
+  ins.add(new MethodInsnNode(Opcodes.INVOKESTATIC, Type.getInternalName(ExampleHooks.class),
+      "onUseItem", "(FF)Lexample/UseItemEvent;", false));
+  ins.add(new VarInsnNode(Opcodes.ASTORE, 4));
+
+  // 遍历替换后续使用的 yaw/pitch 加载为事件字段
+  for (int i = 0; i < method.instructions.size(); ++i) {
+    AbstractInsnNode node = method.instructions.get(i);
+    if (node instanceof MethodInsnNode && ((MethodInsnNode) node).name.equals("getYRot")) {
+      AbstractInsnNode prev = method.instructions.get(i - 1);
+      if (prev instanceof VarInsnNode) {
+        method.instructions.insert(prev, new VarInsnNode(Opcodes.ALOAD, 4));
+        method.instructions.remove(prev);
+        method.instructions.insert(node, new FieldInsnNode(Opcodes.GETFIELD, "example/UseItemEvent", "yaw", "F"));
+        method.instructions.remove(node);
+      }
+    }
+    if (node instanceof MethodInsnNode && ((MethodInsnNode) node).name.equals("getXRot")) {
+      AbstractInsnNode prev = method.instructions.get(i - 1);
+      if (prev instanceof VarInsnNode) {
+        method.instructions.insert(prev, new VarInsnNode(Opcodes.ALOAD, 4));
+        method.instructions.remove(prev);
+        method.instructions.insert(node, new FieldInsnNode(Opcodes.GETFIELD, "example/UseItemEvent", "pitch", "F"));
+        method.instructions.remove(node);
+      }
+    }
+  }
+  method.instructions.insert(ins);
+}
+
+public final class ExampleHooks {
+  public static class UseItemEvent { public float yaw, pitch; }
+  public static UseItemEvent onUseItem(float yaw, float pitch) {
+    UseItemEvent e = new UseItemEvent(); e.yaw = yaw; e.pitch = pitch; return e;
+  }
+}</code></pre>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h3 class="md-typescale-title-medium">注入点选择与 Hook 方法</h3>
+        <ul class="md-typescale-body-medium">
+          <li>优先定位稳定的模式：如 GUI 渲染调用后插入 2D 事件。</li>
+          <li>对局部变量索引进行扫描并分配安全的新索引。</li>
+          <li>复杂逻辑通过静态方法 Hook，ASM 仅负责参数装载与返回。</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="usage">
+      <div class="card">
+        <h2 class="md-typescale-headline-medium">集成与初始化</h2>
+        <ol class="md-typescale-body-medium">
+          <li>添加 ASM 依赖并确保 `native_utils.dll` 可用。</li>
+          <li>应用启动时调用 `TransformerManager.init()` 完成注册与重定义。</li>
+          <li>在 `TransformerManager` 中通过 `transformer.addTransformer(...)` 注册变换器。</li>
+        </ol>
+        <pre class="mono"><code class="language-java">public static void init(){
+  if(loaded) return; loaded = true;
+  transformer = new Transformer();
+  transformer.addTransformer(new LocalPlayerTransformer());
+  transformer.addTransformer(new CameraTransformer());
+  /* ... 其他变换器 ... */
+  System.load(resourcesPath+"/native_utils.dll");
+  for(var t : transformer.transformers) a.a(t.getTarget());
+  var map = transformer.transform();
+  for(var e : map.entrySet()) a.a(Class.forName(e.getKey()), e.getValue());
+}</code></pre>
+        <div class="section-actions">
+          <md-filled-button onclick="location.hash='advanced'">调试与日志</md-filled-button>
+        </div>
+      </div>
+      <div class="grid">
+        <div class="card">
+          <h3 class="md-typescale-title-medium">调试最佳实践</h3>
+          <ul class="md-typescale-body-medium">
+            <li>启用调试输出重写后的 `.class` 并用反编译器分析。</li>
+            <li>在静态 Hook 方法中加入日志，验证参数与执行时机。</li>
+            <li>使用 `CheckClassAdapter` 验证生成字节码合法性。</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3 class="md-typescale-title-medium">性能建议</h3>
+          <ul class="md-typescale-body-medium">
+            <li>在渲染/网络热点路径减少 ASM 指令数量。</li>
+            <li>将计算移动到 Java 方法，ASM 只做参数编组。</li>
+            <li>避免运行时反射与多次映射查询。</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="advanced">
+      <div class="card">
+        <h2 class="md-typescale-headline-medium">复杂场景与安全性</h2>
+        <ul class="md-typescale-body-medium">
+          <li>Lambda 注入：定位 `lambda$method$0` 等合成方法进行注入。</li>
+          <li>控制流处理：使用 `LabelNode` 构造分支与短路返回。</li>
+          <li>安全性：避免日志中输出敏感配置与密钥。</li>
+        </ul>
+        <pre class="mono"><code class="language-java">@Inject(method="lambda$ensureRunningOnSameThread$0", desc="(L...;L...;)V")
+public void ensureRunningOnSameThread(MethodNode n){
+  AbstractInsnNode target=null; for(var ins:n.instructions){
+    if(ins instanceof MethodInsnNode m && m.name.equals(MappingUtils.get(Packet.class,"handle","(L...;)V"))){ target=ins; break; }}
+  var toInsert=new InsnList(); /* 构造事件、短路返回等 */
+  n.instructions.insertBefore(target,toInsert);
+}</code></pre>
+      </div>
+      <div class="grid">
+        <div class="card">
+          <h3 class="md-typescale-title-medium">与其他框架集成</h3>
+          <ul class="md-typescale-body-medium">
+            <li>事件总线：在 Hook 静态方法中分发到应用的 EventManager。</li>
+            <li>UI 模块：渲染事件中驱动 HUD/Overlay 组件。</li>
+            <li>网络模块：在 Packet 发送/接收处统一拦截与延迟。</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3 class="md-typescale-title-medium">常见问题排查</h3>
+          <ul class="md-typescale-body-medium">
+            <li>类未重写：确认 `a.a` 成功与类名匹配。</li>
+            <li>崩溃/栈异常：检查指令栈平衡与 `maxLocals` 索引。</li>
+            <li>注入失效：检查映射 `MappingUtils.get(...)` 的版本一致性。</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="api">
+      <div class="card">
+        <h3 class="md-typescale-title-medium">API 片段</h3>
+        <div class="grid">
+          <div class="card code-card">
+            <h4 class="md-typescale-title-small">ASMTransformer 基类</h4>
+            <pre class="mono"><code class="language-java">public class ASMTransformer {
+  private Class<?> target;
+  @Retention(RUNTIME) @Target(METHOD)
+  public @interface Inject { String method(); String desc(); }
+}</code></pre>
+          </div>
+          <div class="card code-card">
+            <h4 class="md-typescale-title-small">Transformer 管线</h4>
+            <pre class="mono"><code class="language-java">public Map<String,byte[]> transform(){
+  for(var t:transformers){
+    var bytes = a.getClassesBytes(t.getTarget());
+    var node = ASMUtils.node(bytes);
+    for(var m: t.getClass().getDeclaredMethods()){
+      var ann = m.getAnnotation(ASMTransformer.Inject.class);
+      if(ann==null) continue;
+      var target = Operation.findTargetMethod(node.methods, node.name,
+        MappingUtils.get(t.getTarget(), ann.method(), ann.desc()), ann.desc());
+      m.invoke(t, target);
+    }
+    classMap.put(name, ASMUtils.rewriteClass(node));
+  }
+  return classMap;
+}</code></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
+
