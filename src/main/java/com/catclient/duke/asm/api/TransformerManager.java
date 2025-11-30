@@ -1,0 +1,72 @@
+package com.catclient.duke.asm.api;
+
+import a.a;
+import com.catclient.duke.Duke;
+import com.catclient.duke.utils.asm.ASMTransformer;
+import org.objectweb.asm.Opcodes;
+
+import javax.swing.*;
+import java.io.File;
+import java.nio.file.Files;
+import java.util.Map;
+
+/*
+ * 一个简单的asm注入框架
+ * 原作者: Loratadine (Cherish)
+ * 修改: 玖弦, 手淫
+ */
+
+public class TransformerManager {
+    public static final boolean debugging = false;
+    public static final int ASM_API = Opcodes.ASM5;
+    public static Transformer transformer;
+    public static Map<String, byte[]> classBytesMap;
+    private static boolean loaded = false;
+
+    public static void init() {
+        if (loaded) return;
+
+
+        loaded = true;
+
+        transformer = new Transformer();
+
+        try {
+//            在这里注册你的变形金刚
+//            transformer.addTransformer(new MinecraftTransformer());
+
+            try {
+                System.load(Duke.CLIENT_FOLDER.getAbsolutePath() + "\\libNativeUtils.dll");
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(null, "加载NativeUtils失败: \n" + e.getMessage(), "注入失败", JOptionPane.ERROR_MESSAGE);
+                e.printStackTrace();
+                System.exit(0);
+            }
+            for (ASMTransformer asmTransformer : TransformerManager.transformer.transformers) {
+                a.a(asmTransformer.getTarget());
+            }
+
+
+            classBytesMap = transformer.transform();
+
+
+            for (Map.Entry<String, byte[]> entry : classBytesMap.entrySet()) {
+                try {
+                    a.a(Class.forName(entry.getKey()), entry.getValue());
+                    if (debugging)
+                        Files.write(new File(Duke.CLIENT_FOLDER, entry.getKey() + ".class").toPath(), entry.getValue());
+                } catch (Throwable ex) {
+                    ex.printStackTrace();
+                    System.out.println("Failed to reload class:" + entry.getKey() + "\n" + ex.getMessage());
+                }
+            }
+
+
+        } catch (Throwable ex) {
+            System.out.println("Mixin inject failed.");
+            ex.printStackTrace();
+        }
+    }
+
+
+}
