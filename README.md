@@ -2,7 +2,7 @@
 
 Heypixel inject base
 
-## 📖 开发文档 / Documentation
+## 开发文档 / Documentation
 
 详细的开发说明请参考在线文档：[Duke Inject 文档](https://jiuxianqwq.github.io/DukeInject/)
 
