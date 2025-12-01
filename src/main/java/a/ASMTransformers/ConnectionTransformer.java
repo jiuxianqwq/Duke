@@ -6,7 +6,6 @@ import com.catclient.duke.event.api.EventType;
 import com.catclient.duke.event.impl.PacketEvent;
 import com.catclient.duke.utils.client.ReflectionUtils;
 import com.catclient.duke.utils.wrapper.Wrapper;
-import io.netty.channel.ChannelHandlerContext;
 import net.minecraft.network.Connection;
 import net.minecraft.network.PacketListener;
 import net.minecraft.network.PacketSendListener;
@@ -15,7 +14,6 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 /**
@@ -26,6 +24,28 @@ import java.lang.reflect.Method;
 public class ConnectionTransformer extends ASMTransformer implements Wrapper {
     public ConnectionTransformer() {
         super(Connection.class);
+    }
+
+    public static void hookGenericsFtw(Packet<?> packet, PacketListener packetListener, Connection connection) {
+        PacketEvent packetEvent = new PacketEvent(EventType.INCOMING, packet);
+        Duke.getInstance().getEventManager().call(packetEvent);
+        if (!packetEvent.isCancelled()) {
+            Packet<PacketListener> eventPacket = (Packet<PacketListener>) packetEvent.getPacket();
+            eventPacket.handle(packetListener);
+        }
+    }
+
+    public static void hookSendPacket(Packet<?> packet, PacketSendListener packetSendListener, Connection connection) {
+        PacketEvent packetEvent = new PacketEvent(EventType.OUTGOING, packet);
+        Duke.getInstance().getEventManager().call(packetEvent);
+        if (!packetEvent.isCancelled()) {
+            Method sendPacket = ReflectionUtils.getMethod(connection.getClass(), "sendPacket", "(Lnet/minecraft/network/protocol/Packet;Lnet/minecraft/network/PacketSendListener;)V", Packet.class, PacketSendListener.class);
+            try {
+                sendPacket.invoke(connection, packetEvent.getPacket(), packetSendListener);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     @Inject(method = "channelRead0", desc = "(Lio/netty/channel/ChannelHandlerContext;Lnet/minecraft/network/protocol/Packet;)V")
@@ -45,15 +65,6 @@ public class ConnectionTransformer extends ASMTransformer implements Wrapper {
         }
     }
 
-    public static void hookGenericsFtw(Packet<?> packet, PacketListener packetListener, Connection connection) {
-        PacketEvent packetEvent = new PacketEvent(EventType.INCOMING, packet);
-        Duke.getInstance().getEventManager().call(packetEvent);
-        if (!packetEvent.isCancelled()) {
-            Packet<PacketListener> eventPacket = (Packet<PacketListener>) packetEvent.getPacket();
-            eventPacket.handle(packetListener);
-        }
-    }
-
     @Inject(method = "send", desc = "(Lnet/minecraft/network/protocol/Packet;Lnet/minecraft/network/PacketSendListener;)V")
     public void send(MethodNode methodNode) {
         AbstractInsnNode[] array = methodNode.instructions.toArray();
@@ -68,19 +79,6 @@ public class ConnectionTransformer extends ASMTransformer implements Wrapper {
                     methodNode.instructions.insert(insnNode, insnList);
                     methodNode.instructions.remove(abstractInsnNode);
                 }
-            }
-        }
-    }
-
-    public static void hookSendPacket(Packet<?> packet, PacketSendListener packetSendListener, Connection connection) {
-        PacketEvent packetEvent = new PacketEvent(EventType.OUTGOING, packet);
-        Duke.getInstance().getEventManager().call(packetEvent);
-        if (!packetEvent.isCancelled()) {
-            Method sendPacket = ReflectionUtils.getMethod(connection.getClass(), "sendPacket", "(Lnet/minecraft/network/protocol/Packet;Lnet/minecraft/network/PacketSendListener;)V", Packet.class, PacketSendListener.class);
-            try {
-                sendPacket.invoke(connection, packetEvent.getPacket(), packetSendListener);
-            } catch (Exception e) {
-                e.printStackTrace();
             }
         }
     }

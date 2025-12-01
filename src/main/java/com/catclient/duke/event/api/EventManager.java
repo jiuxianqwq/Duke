@@ -1,13 +1,14 @@
-package com.catclient.duke.event;
+package com.catclient.duke.event.api;
 
 
 import com.catclient.duke.event.api.annotations.EventPriority;
 import com.catclient.duke.event.api.annotations.EventTarget;
-import com.catclient.duke.event.api.Event;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -28,7 +29,7 @@ public class EventManager {
      * @param obj One or more objects to register.
      */
     public void register(Object... obj) {
-        for(Object object : obj){
+        for (Object object : obj) {
             register(object);
         }
     }

@@ -1,11 +1,11 @@
 package com.catclient.duke.asm.api;
 
 import a.a;
-import com.catclient.duke.utils.mapping.MappingUtils;
 import com.catclient.duke.asm.api.transformer.Operation;
 import com.catclient.duke.asm.api.transformer.impl.InjectOperation;
 import com.catclient.duke.utils.asm.ASMUtils;
 import com.catclient.duke.utils.client.LogUtils;
+import com.catclient.duke.utils.mapping.MappingUtils;
 import lombok.Getter;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;

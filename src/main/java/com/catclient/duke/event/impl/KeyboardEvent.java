@@ -17,6 +17,7 @@ public class KeyboardEvent implements Event {
     private int scancode;
     private int action;
     private int mods;
+    private boolean bind;
 
     public KeyboardEvent(long window, int key, int scancode, int action, int mods) {
         this.window = window;

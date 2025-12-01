@@ -13,6 +13,7 @@ import lombok.Setter;
 @Setter
 public class SprintEvent implements Event {
     private boolean sprint;
+
     public SprintEvent(boolean state) {
         this.sprint = state;
     }

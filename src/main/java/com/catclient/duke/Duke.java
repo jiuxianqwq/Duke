@@ -1,13 +1,13 @@
 package com.catclient.duke;
 
 import com.catclient.duke.asm.api.TransformerManager;
-import com.catclient.duke.event.EventManager;
+import com.catclient.duke.command.CommandManager;
+import com.catclient.duke.event.api.EventManager;
 import com.catclient.duke.module.ModuleManager;
 import com.catclient.duke.utils.client.LibraryUtils;
 import com.catclient.duke.utils.client.SoundUtils;
 import lombok.Getter;
 import net.minecraft.client.Minecraft;
-import net.minecraftforge.fml.common.Mod;
 
 import java.io.File;
 import java.lang.reflect.Field;
@@ -25,6 +25,7 @@ public class Duke {
     private static boolean canPlaySound = false;
     private EventManager eventManager;
     private ModuleManager moduleManager;
+    private CommandManager commandManager;
 
     public Duke() {
         try {
@@ -45,15 +46,6 @@ public class Duke {
         return null;
     }
 
-    public Minecraft init(Class<?> clazz) throws Exception {
-        LibraryUtils.loadNatives();
-        eventManager = new EventManager();
-        moduleManager = new ModuleManager();
-
-        TransformerManager.init();
-        return null;
-    }
-
     public static Minecraft getMinecraft() {
         Minecraft minecraft = null;
         try {
@@ -69,5 +61,15 @@ public class Duke {
             e.printStackTrace();
         }
         return minecraft;
+    }
+
+    public Minecraft init(Class<?> clazz) throws Exception {
+        LibraryUtils.loadNatives();
+        eventManager = new EventManager();
+        moduleManager = new ModuleManager();
+        commandManager = new CommandManager();
+
+        TransformerManager.init();
+        return null;
     }
 }

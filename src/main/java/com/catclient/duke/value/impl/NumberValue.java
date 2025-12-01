@@ -54,7 +54,8 @@ public class NumberValue extends Value {
     }
 
     public float get() {
-        if (range) return MathUtils.getRandomInRange(min, max); else return value;
+        if (range) return MathUtils.getRandomInRange(min, max);
+        else return value;
     }
 
     public float getRandom() {

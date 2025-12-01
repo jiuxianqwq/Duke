@@ -7,7 +7,6 @@ import com.catclient.duke.event.impl.SprintEvent;
 import com.catclient.duke.utils.mapping.MappingUtils;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraftforge.event.TickEvent;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
@@ -20,6 +19,18 @@ import org.objectweb.asm.tree.*;
 public class LocalPlayerTransformer extends ASMTransformer {
     public LocalPlayerTransformer() {
         super(LocalPlayer.class);
+    }
+
+    public static boolean hookSprint() {
+        SprintEvent sprintEvent = new SprintEvent(options.keySprint.isDown());
+        Duke.getInstance().getEventManager().call(sprintEvent);
+        return sprintEvent.isSprint();
+    }
+
+    public static boolean hookTick() {
+        PlayerTickEvent playerTickEvent = new PlayerTickEvent();
+        Duke.getInstance().getEventManager().call(playerTickEvent);
+        return !playerTickEvent.isCancelled();
     }
 
     @Inject(method = "aiStep", desc = "()V")
@@ -42,12 +53,6 @@ public class LocalPlayerTransformer extends ASMTransformer {
         }
     }
 
-    public static boolean hookSprint() {
-        SprintEvent sprintEvent = new SprintEvent(options.keySprint.isDown());
-        Duke.getInstance().getEventManager().call(sprintEvent);
-        return sprintEvent.isSprint();
-    }
-
     @Inject(method = "tick", desc = "()V")
     public void tick(MethodNode methodNode) {
         AbstractInsnNode[] array = methodNode.instructions.toArray();
@@ -68,11 +73,5 @@ public class LocalPlayerTransformer extends ASMTransformer {
                 }
             }
         }
-    }
-
-    public static boolean hookTick() {
-        PlayerTickEvent playerTickEvent = new PlayerTickEvent();
-        Duke.getInstance().getEventManager().call(playerTickEvent);
-        return !playerTickEvent.isCancelled();
     }
 }

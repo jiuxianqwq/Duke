@@ -1,5 +1,6 @@
 package com.catclient.duke.asm.api;
 
+import a.ASMTransformers.ClientPacketListenerTransformer;
 import a.ASMTransformers.ConnectionTransformer;
 import a.ASMTransformers.KeyboardHandlerTransformer;
 import a.ASMTransformers.LocalPlayerTransformer;
@@ -7,7 +8,6 @@ import a.a;
 import com.catclient.duke.Duke;
 import org.objectweb.asm.Opcodes;
 
-import javax.swing.*;
 import java.io.File;
 import java.nio.file.Files;
 import java.util.Map;
@@ -19,7 +19,7 @@ import java.util.Map;
  */
 
 public class TransformerManager {
-    public static final boolean debugging = false;
+    public static final boolean debugging = true;
     public static final int ASM_API = Opcodes.ASM5;
     public static Transformer transformer;
     public static Map<String, byte[]> classBytesMap;
@@ -39,6 +39,7 @@ public class TransformerManager {
             transformer.addTransformer(new KeyboardHandlerTransformer());
             transformer.addTransformer(new LocalPlayerTransformer());
             transformer.addTransformer(new ConnectionTransformer());
+            transformer.addTransformer(new ClientPacketListenerTransformer());
 
             for (ASMTransformer asmTransformer : TransformerManager.transformer.transformers) {
                 a.a(asmTransformer.getTarget());

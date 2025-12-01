@@ -19,7 +19,7 @@ public class PacketEvent implements Event, Cancellable {
     private EventType type;
     private Packet<?> packet;
 
-    public PacketEvent(EventType type,  Packet<?> packet) {
+    public PacketEvent(EventType type, Packet<?> packet) {
         this.type = type;
         this.packet = packet;
     }

@@ -6,10 +6,6 @@ import com.catclient.duke.utils.wrapper.Wrapper;
 import com.catclient.duke.value.Value;
 import lombok.Getter;
 import lombok.Setter;
-import net.minecraft.client.Options;
-import net.minecraft.client.multiplayer.ClientPacketListener;
-import net.minecraft.client.multiplayer.MultiPlayerGameMode;
-import net.minecraft.world.phys.HitResult;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,15 +57,21 @@ public class Module implements Wrapper {
         return enabled;
     }
 
-    public void onEnable() {}
+    public void onEnable() {
+    }
 
-    public void onDisable() {}
+    public void onDisable() {
+    }
 
     public void addValue(Value value) {
         values.add(value);
     }
 
     public String getName() {
+        return name;
+    }
+
+    public String getEnName() {
         return name;
     }
 }

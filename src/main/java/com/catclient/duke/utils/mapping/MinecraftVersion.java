@@ -21,6 +21,7 @@ public class MinecraftVersion implements Comparable<MinecraftVersion> {
     private final int year;
     private final int pre;
     private final String revision;
+
     private MinecraftVersion(Type type, String full, int week, int year, int pre, String revision, int[] nearest) {
         this.type = type;
         this.full = full;

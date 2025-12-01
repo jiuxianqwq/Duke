@@ -20,6 +20,10 @@ public class KeyboardHandlerTransformer extends ASMTransformer {
         super(KeyboardHandler.class);
     }
 
+    public static void onKeyPress(long window, int key, int scancode, int action, int mods) {
+        Duke.getInstance().getEventManager().call(new KeyboardEvent(window, key, scancode, action, mods));
+    }
+
     @Inject(method = "keyPress", desc = "(JIIII)V")
     public void injectKeyPress(MethodNode methodNode) {
         AbstractInsnNode[] insnNodes = methodNode.instructions.toArray();
@@ -40,9 +44,5 @@ public class KeyboardHandlerTransformer extends ASMTransformer {
                 }
             }
         }
-    }
-
-    public static void onKeyPress(long window, int key, int scancode, int action, int mods) {
-        Duke.getInstance().getEventManager().call(new KeyboardEvent(window, key, scancode, action, mods));
     }
 }

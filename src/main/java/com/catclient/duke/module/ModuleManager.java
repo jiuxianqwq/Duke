@@ -18,7 +18,7 @@ import java.util.List;
  * @Filename：ModuleManager
  */
 public class ModuleManager implements Wrapper {
-    private List<Module> modules = new ArrayList<>();
+    private final List<Module> modules = new ArrayList<>();
 
     public ModuleManager() {
         init();
@@ -27,7 +27,7 @@ public class ModuleManager implements Wrapper {
     public void init() {
         Duke.getInstance().getEventManager().register(this);
         addModule(
-            new Sprint(), new Freeze()
+                new Sprint(), new Freeze()
         );
     }
 
@@ -42,6 +42,10 @@ public class ModuleManager implements Wrapper {
                 modules.add(module);
             }
         }
+        return modules;
+    }
+
+    public List<Module> getModules() {
         return modules;
     }
 
@@ -65,7 +69,7 @@ public class ModuleManager implements Wrapper {
 
     @EventTarget
     public void onKey(KeyboardEvent event) {
-        if (event.getAction() == GLFW.GLFW_PRESS) {
+        if (event.getAction() == GLFW.GLFW_PRESS && mc.screen == null && !event.isBind()) {
             for (Module module : modules) {
                 if (module.getKey() == event.getKey()) {
                     module.toggle();

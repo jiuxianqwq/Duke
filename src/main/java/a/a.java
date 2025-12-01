@@ -2,8 +2,8 @@ package a;
 
 
 import com.catclient.duke.Duke;
-import com.catclient.duke.asm.api.TransformerManager;
 import com.catclient.duke.asm.api.ASMTransformer;
+import com.catclient.duke.asm.api.TransformerManager;
 import net.minecraftforge.fml.common.Mod;
 
 import java.util.HashMap;

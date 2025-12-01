@@ -1,7 +1,6 @@
 package com.catclient.duke.utils.client;
 
 import com.catclient.duke.Duke;
-import net.minecraft.resources.ResourceLocation;
 
 import javax.sound.sampled.*;
 import java.io.BufferedInputStream;

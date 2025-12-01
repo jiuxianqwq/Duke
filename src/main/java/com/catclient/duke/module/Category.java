@@ -12,11 +12,11 @@ public enum Category {
     RENDER("Visual", "视觉", "\ue8f4"),
     MISC("Misc", "杂项", "\ue8b8");
 
-    private String name;
-    private String cnName;
-    private String icon;
+    private final String name;
+    private final String cnName;
+    private final String icon;
 
-    private Category(String name, String cnName, String icon) {
+    Category(String name, String cnName, String icon) {
         this.name = name;
         this.cnName = cnName;
         this.icon = icon;
