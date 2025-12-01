@@ -1,6 +1,7 @@
 package com.catclient.duke.module.impl.movement;
 
 import com.catclient.duke.event.api.annotations.EventTarget;
+import com.catclient.duke.event.impl.PacketEvent;
 import com.catclient.duke.event.impl.SprintEvent;
 import com.catclient.duke.module.Category;
 import com.catclient.duke.module.Module;
@@ -20,5 +21,10 @@ public class Sprint extends Module {
     @EventTarget
     public void onSprint(SprintEvent event) {
         event.setSprint(true);
+    }
+
+    @EventTarget
+    public void onPacket(PacketEvent event) {
+        System.out.println(event.getPacket());
     }
 }

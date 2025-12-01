@@ -1,5 +1,6 @@
 package com.catclient.duke.asm.api;
 
+import a.ASMTransformers.ConnectionTransformer;
 import a.ASMTransformers.KeyboardHandlerTransformer;
 import a.ASMTransformers.LocalPlayerTransformer;
 import a.a;
@@ -37,6 +38,7 @@ public class TransformerManager {
 //            transformer.addTransformer(new MinecraftTransformer());
             transformer.addTransformer(new KeyboardHandlerTransformer());
             transformer.addTransformer(new LocalPlayerTransformer());
+            transformer.addTransformer(new ConnectionTransformer());
 
             for (ASMTransformer asmTransformer : TransformerManager.transformer.transformers) {
                 a.a(asmTransformer.getTarget());
