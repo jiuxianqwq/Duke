@@ -50,6 +50,7 @@ public class Module implements Wrapper {
             SoundUtils.playSound(soundFolder.getAbsolutePath() + "\\disable.wav", 1f);
             onDisable();
         }
+        Duke.getInstance().getConfigManager().saveConfig();
     }
 
     public boolean toggle() {
@@ -74,4 +75,5 @@ public class Module implements Wrapper {
     public String getEnName() {
         return name;
     }
+
 }

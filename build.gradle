@@ -153,6 +153,10 @@ dependencies {
     testImplementation 'org.projectlombok:lombok:1.18.34'
     testAnnotationProcessor 'org.projectlombok:lombok:1.18.34'
 
+    implementation fileTree(dir: 'libs', include: '*.jar')
+    compileOnly fileTree(dir: 'libs', include: '*.jar')
+    testCompileOnly fileTree(dir: 'libs', include: '*.jar')
+
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.

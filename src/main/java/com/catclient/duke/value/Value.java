@@ -24,4 +24,8 @@ public class Value {
         this.visible = visible.get();
         if (parent != null) parent.addValue(this);
     }
+
+    public String getEnName() {
+        return name;
+    }
 }

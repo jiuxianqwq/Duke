@@ -2,6 +2,7 @@ package com.catclient.duke.command;
 
 import com.catclient.duke.Duke;
 import com.catclient.duke.command.impl.Bind;
+import com.catclient.duke.command.impl.ConfigCommand;
 import com.catclient.duke.event.api.annotations.EventTarget;
 import com.catclient.duke.event.impl.ChatEvent;
 import lombok.Getter;
@@ -27,7 +28,8 @@ public class CommandManager {
 
     public void init() {
         addCommand(
-                new Bind()
+                new Bind(),
+                new ConfigCommand()
         );
     }
 

@@ -2,10 +2,12 @@ package com.catclient.duke;
 
 import com.catclient.duke.asm.api.TransformerManager;
 import com.catclient.duke.command.CommandManager;
+import com.catclient.duke.config.ConfigManager;
 import com.catclient.duke.event.api.EventManager;
 import com.catclient.duke.module.ModuleManager;
 import com.catclient.duke.utils.client.LibraryUtils;
 import com.catclient.duke.utils.client.SoundUtils;
+import com.google.gson.Gson;
 import lombok.Getter;
 import net.minecraft.client.Minecraft;
 
@@ -26,6 +28,7 @@ public class Duke {
     private EventManager eventManager;
     private ModuleManager moduleManager;
     private CommandManager commandManager;
+    private ConfigManager configManager;
 
     public Duke() {
         try {
@@ -64,9 +67,11 @@ public class Duke {
     }
 
     public Minecraft init(Class<?> clazz) throws Exception {
+        System.out.println(Gson.class.getClassLoader());
         LibraryUtils.loadNatives();
         eventManager = new EventManager();
         moduleManager = new ModuleManager();
+        configManager = new ConfigManager();
         commandManager = new CommandManager();
 
         TransformerManager.init();
